@@ -28,7 +28,7 @@
                         else if (gaEcomTransfer.settings.siteSearchPage.test(gaEcomTransfer.main.url.href)) {
                             return this.eventsEcomm.impressions[2];
                         }
-                        else if (gaEcomTransfer.main.event.getCustomPageType() === 'main' || gaEcomTransfer.main.event.getGTMpageType() === 'main') {
+                        else if (gaEcomTransfer.main.event.getCustomPageType() === 'gaEcomTransfer.main' || gaEcomTransfer.main.event.getGTMpageType() === 'gaEcomTransfer.main') {
                             return this.eventsEcomm.impressions[0];
                         }
                         else if (gaEcomTransfer.main.event.getCustomPageType() === 'catalog' || gaEcomTransfer.main.event.getGTMpageType() === 'catalog') {
@@ -401,7 +401,7 @@
                         else if (gaEcomTransfer.settings.siteSearchPage.test(gaEcomTransfer.main.url.href)) {
                             return this.eventsEcomm.impressions[2];
                         }
-                        else if (gaEcomTransfer.main.event.getCustomPageType() === 'main' || gaEcomTransfer.main.event.getGTMpageType() === 'main') {
+                        else if (gaEcomTransfer.main.event.getCustomPageType() === 'gaEcomTransfer.main' || gaEcomTransfer.main.event.getGTMpageType() === 'gaEcomTransfer.main') {
                             return this.eventsEcomm.impressions[0];
                         }
                         else if (gaEcomTransfer.main.event.getCustomPageType() === 'catalog' || gaEcomTransfer.main.event.getGTMpageType() === 'catalog') {
@@ -606,9 +606,9 @@
                         var eventCheckedObj = {};
                         for (var pixel in gaEcomTransfer.settings.pixels) {
                             if (gaEcomTransfer.settings.pixels[pixel]) {
-                                if (!main[pixel].eventsEcomm.hasOwnProperty(ecommEventName)) eventCheckedObj[pixel] = false;
+                                if (!gaEcomTransfer.main[pixel].eventsEcomm.hasOwnProperty(ecommEventName)) eventCheckedObj[pixel] = false;
                                 else if (ecommEventName === 'checkout' && parseInt(ecommEventObj.actionField.step, 10) !== 1) eventCheckedObj[pixel] = false;
-                                else if (main[pixel].hasOwnProperty('eventCheck') && !main[pixel].eventCheck(ecommEventName, ecommEventObj)) eventCheckedObj[pixel] = false;
+                                else if (gaEcomTransfer.main[pixel].hasOwnProperty('eventCheck') && !gaEcomTransfer.main[pixel].eventCheck(ecommEventName, ecommEventObj)) eventCheckedObj[pixel] = false;
                                 else eventCheckedObj[pixel] = true;
                             } else eventCheckedObj[pixel] = false;
                         }
@@ -618,16 +618,16 @@
                     //метод-конструктор объекта события
                     eventConstructor: function(pixel, ecommEventName, ecommEventProducts, ecommEventCurrencyCode, ecommEventRevenue){
                         gaEcomTransfer.debug.log_start.call(gaEcomTransfer.main.event, 'event.eventConstructor');
-                        this.name = main[pixel].getEventName(ecommEventName);
-                        this.params = main[pixel].getEventParams(ecommEventProducts, ecommEventCurrencyCode, ecommEventRevenue, ecommEventName);
+                        this.name = gaEcomTransfer.main[pixel].getEventName(ecommEventName);
+                        this.params = gaEcomTransfer.main[pixel].getEventParams(ecommEventProducts, ecommEventCurrencyCode, ecommEventRevenue, ecommEventName);
                     },
         
                     //метод определения типа страницы
                     getCustomPageType: function(){
                         gaEcomTransfer.debug.log_start.call(this, 'event.getCustomPageType');
-                        if (gaEcomTransfer.settings.mainPage.test(gaEcomTransfer.main.url.href)){
-                            gaEcomTransfer.debug.log.call(this, 'тип страницы, определенный встроенным методом: main');
-                            return 'main';
+                        if (gaEcomTransfer.settings.gaEcomTransfer.mainPage.test(gaEcomTransfer.main.url.href)){
+                            gaEcomTransfer.debug.log.call(this, 'тип страницы, определенный встроенным методом: gaEcomTransfer.main');
+                            return 'gaEcomTransfer.main';
                         }
                         else if (gaEcomTransfer.settings.catalogPage.test(gaEcomTransfer.main.url.href)){
                             gaEcomTransfer.debug.log.call(this, 'тип страницы, определенный встроенным методом: catalog');
@@ -642,9 +642,9 @@
                     //метод определения типа страницы из переменной gtm
                     getGTMpageType: function(){
                         gaEcomTransfer.debug.log_start.call(this, 'event.getGTMpageType');
-                        if (gaEcomTransfer.settings.pageTypeGTM === gaEcomTransfer.settings.pageTypeGTMnames.main){
-                            gaEcomTransfer.debug.log.call(this, 'тип страницы, определенный из gtm-переменной: main');
-                            return 'main';
+                        if (gaEcomTransfer.settings.pageTypeGTM === gaEcomTransfer.settings.pageTypeGTMnames.gaEcomTransfer.main){
+                            gaEcomTransfer.debug.log.call(this, 'тип страницы, определенный из gtm-переменной: gaEcomTransfer.main');
+                            return 'gaEcomTransfer.main';
                         }
                         else if (gaEcomTransfer.settings.pageTypeGTMnames.catalog.indexOf(gaEcomTransfer.settings.pageTypeGTM) !== -1){
                             gaEcomTransfer.debug.log.call(this, 'тип страницы, определенный из gtm-переменной: catalog');
@@ -699,7 +699,7 @@
                 firstStart: function(){
                     gaEcomTransfer.debug.log_start.call(this, 'firstStart');
                     for (var pixel in gaEcomTransfer.settings.pixels){
-                        if (gaEcomTransfer.settings.pixels[pixel]) main[pixel].sendPageView();
+                        if (gaEcomTransfer.settings.pixels[pixel]) gaEcomTransfer.main[pixel].sendPageView();
                     }
                     if (window.dataLayer){
                         for (var i = 0;  i < dataLayer.length; i++){
@@ -720,7 +720,7 @@
                                 for (var checkedPixel in eventCheckedObj){
                                     if (eventCheckedObj[checkedPixel]){
                                         gaEcomTransfer.debug.log.call(this, 'проверка события', property, 'для', checkedPixel, 'пройдена, начинаю отправку данных');
-                                        main[checkedPixel].sendEvent(property, products, ecommEventCurrencyCode, revenue);
+                                        gaEcomTransfer.main[checkedPixel].sendEvent(property, products, ecommEventCurrencyCode, revenue);
                                     } else gaEcomTransfer.debug.log.call(this, 'проверка события', property, 'для', checkedPixel, 'не пройдена');
                                 }
                             }
@@ -732,11 +732,11 @@
                 setDataLayerPushListener: function(originalPush){
                     gaEcomTransfer.debug.log.call(this, 'устанавливаю слушатель на dataLayer.push');
                     dataLayer.push = function(){
-                        gaEcomTransfer.debug.log.call(main, 'перехвачен dataLayer.push');
+                        gaEcomTransfer.debug.log.call(gaEcomTransfer.main, 'перехвачен dataLayer.push');
                         originalPush.apply(this, arguments);
-                        gaEcomTransfer.debug.log.call(main, 'оригинальный dataLayer.push отправлен');
+                        gaEcomTransfer.debug.log.call(gaEcomTransfer.main, 'оригинальный dataLayer.push отправлен');
                         if (!arguments[0].hasOwnProperty('ecommerce')){
-                            gaEcomTransfer.debug.log.call(main, 'в перехваченном dataLayer.push ecommerce не обнаружен');
+                            gaEcomTransfer.debug.log.call(gaEcomTransfer.main, 'в перехваченном dataLayer.push ecommerce не обнаружен');
                             return;
                         } else gaEcomTransfer.main.otherStart(arguments[0]);
                     };
@@ -757,7 +757,7 @@
                         for (var checkedPixel in eventCheckedObj){
                             if (eventCheckedObj[checkedPixel]){
                                 gaEcomTransfer.debug.log.call(this, 'проверка события', property, 'для', checkedPixel, 'пройдена, начинаю отправку данных');
-                                main[checkedPixel].sendEvent(property, products, ecommEventCurrencyCode, revenue);
+                                gaEcomTransfer.main[checkedPixel].sendEvent(property, products, ecommEventCurrencyCode, revenue);
                             } else gaEcomTransfer.debug.log.call(this, 'проверка события', property, 'для', checkedPixel, 'не пройдена');
                         }
                     }
@@ -788,7 +788,7 @@
                 try{
                     gaEcomTransfer.main.firstStart();
                     if (window.dataLayer) gaEcomTransfer.main.setDataLayerPushListener(dataLayer.push);
-                    else gaEcomTransfer.debug.log.call(main, 'dataLayer не обнаружен, выхожу...');
+                    else gaEcomTransfer.debug.log.call(gaEcomTransfer.main, 'dataLayer не обнаружен, выхожу...');
                 } 
                 catch(e) {
                     console.log('[GTM_UDRT] ERROR');
