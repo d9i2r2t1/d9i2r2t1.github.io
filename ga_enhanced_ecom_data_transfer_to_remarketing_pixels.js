@@ -31,14 +31,14 @@
                     if (ecommEventName !== 'impressions') {
                         return this.eventsEcomm[ecommEventName];
                     }
-                    else if (gaEcomTransfer.main.url.href.match(gaEcomTransfer.settings.siteSearchPage) !== null) {
-                        return this.eventsEcomm.impressions[2];
-                    }
-                    else if (gaEcomTransfer.main.event.getCustomPageType() === 'main' || gaEcomTransfer.main.event.getGTMpageType() === 'main') {
+                    else if (gaEcomTransfer.main.event.getPageType() === 'main') {
                         return this.eventsEcomm.impressions[0];
                     }
-                    else if (gaEcomTransfer.main.event.getCustomPageType() === 'catalog' || gaEcomTransfer.main.event.getGTMpageType() === 'catalog') {
+                    else if (gaEcomTransfer.main.event.getPageType() === 'catalog') {
                         return this.eventsEcomm.impressions[1];
+                    }
+                    else if (gaEcomTransfer.main.event.getPageType() === 'search') {
+                        return this.eventsEcomm.impressions[2];
                     }
                     else {
                         return this.eventsEcomm.impressions[3];
@@ -320,42 +320,46 @@
                 },
 
                 /**
-                * Page type definition without GTM variable.
+                * Page type definition.
                 * @returns {string} Page type.
                 */
-                getCustomPageType: function() {
-                    gaEcomTransfer.debug.log_start.call(this, 'event.getCustomPageType');
-                    if (gaEcomTransfer.main.url.href.match(gaEcomTransfer.settings.mainPage) !== null) {
-                        gaEcomTransfer.debug.log.call(this, 'Page type found by getCustomPageType method: main');
-                        return 'main';
-                    }
-                    else if (gaEcomTransfer.main.url.href.match(gaEcomTransfer.settings.catalogPage) !== null) {
-                        gaEcomTransfer.debug.log.call(this, 'Page type found by getCustomPageType method: catalog');
-                        return 'catalog';
-                    }
-                    else {
-                        gaEcomTransfer.debug.log.call(this, 'Page type found by getCustomPageType method: other');
-                        return 'other';
-                    }
-                },
-
-                /**
-                * Page type definition using the GTM variable.
-                * @returns {string} Page type.
-                */
-                getGTMpageType: function() {
-                    gaEcomTransfer.debug.log_start.call(this, 'event.getGTMpageType');
-                    if (gaEcomTransfer.settings.pageTypeGTM === gaEcomTransfer.settings.pageTypeGTMnames.main) {
-                        gaEcomTransfer.debug.log.call(this, 'Page type found by getGTMpageType method: main');
-                        return 'main';
-                    }
-                    else if (gaEcomTransfer.settings.pageTypeGTMnames.catalog.indexOf(gaEcomTransfer.settings.pageTypeGTM) !== -1) {
-                        gaEcomTransfer.debug.log.call(this, 'Page type found by getGTMpageType method: catalog');
-                        return 'catalog';
+                getPageType: function() {
+                    gaEcomTransfer.debug.log_start.call(this, 'event.getPageType');
+                    if (gaEcomTransfer.settings.useGTMvarPageType) {
+                        if (gaEcomTransfer.settings.pageTypeGTM === gaEcomTransfer.settings.pageTypeGTMnames.main) {
+                            gaEcomTransfer.debug.log.call(this, 'Page type found by GTM variable: main');
+                            return 'main';
+                        }
+                        else if (gaEcomTransfer.settings.pageTypeGTMnames.catalog.indexOf(gaEcomTransfer.settings.pageTypeGTM) !== -1) {
+                            gaEcomTransfer.debug.log.call(this, 'Page type found by GTM variable: catalog');
+                            return 'catalog';
+                        }
+                        if (gaEcomTransfer.settings.pageTypeGTM === gaEcomTransfer.settings.siteSearchPage) {
+                            gaEcomTransfer.debug.log.call(this, 'Page type found by GTM variable: search');
+                            return 'search';
+                        }
+                        else {
+                            gaEcomTransfer.debug.log.call(this, 'Page type found by GTM variable: other');
+                            return 'other';
+                        }
                     }
                     else {
-                        gaEcomTransfer.debug.log.call(this, 'Page type found by getGTMpageType method: other');
-                        return 'other';
+                        if (gaEcomTransfer.main.url.href.match(gaEcomTransfer.settings.mainPage) !== null) {
+                            gaEcomTransfer.debug.log.call(this, 'Page type: main');
+                            return 'main';
+                        }
+                        else if (gaEcomTransfer.main.url.href.match(gaEcomTransfer.settings.catalogPage) !== null) {
+                            gaEcomTransfer.debug.log.call(this, 'Page type: catalog');
+                            return 'catalog';
+                        }
+                        else if (gaEcomTransfer.main.url.href.match(gaEcomTransfer.settings.siteSearchPage) !== null) {
+                            gaEcomTransfer.debug.log.call(this, 'Page type: search');
+                            return 'search';
+                        }
+                        else {
+                            gaEcomTransfer.debug.log.call(this, 'Page type: other');
+                            return 'other';
+                        }
                     }
                 },
 
@@ -365,7 +369,7 @@
                 */
                 getSiteSearchPhrase: function() {
                     gaEcomTransfer.debug.log_start.call(this, 'event.getSiteSearchPhrase');
-                    if (gaEcomTransfer.settings.siteSearchQueryParam && (gaEcomTransfer.main.url.href.match(gaEcomTransfer.settings.siteSearchPage) !== null || gaEcomTransfer.settings.pageTypeGTM === gaEcomTransfer.settings.siteSearchPage)) {
+                    if (gaEcomTransfer.settings.siteSearchQueryParam && this.getPageType() === 'search') {
                         var query = gaEcomTransfer.main.url.search.substring(1);
                         var vars = query.split('&');
                         var queryString = {};
