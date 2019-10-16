@@ -531,13 +531,13 @@
                     }
                     argArr.push(arguments[i]);
                 }
-                if (gaEcomTransfer.settings.debug && /Event data.*was sent to|Pageview was sent to/.test(argArr.join(' '))) {
+                if (gaEcomTransfer.settings.debug && /was sent to/.test(argArr.join(' '))) {
                     console.log('[gaEcomTransfer]%c[' + this.debugName + ' *SEND*]', this.debugCSS + 'font-weight: bold;', argArr.join(' '));
                 }
                 else if (gaEcomTransfer.settings.debug && /failed validation for/.test(argArr.join(' '))) {
                     console.log('[gaEcomTransfer]%c[' + this.debugName + ']', 'background-color: LightCoral;', argArr.join(' '));
                 }
-                else if (gaEcomTransfer.settings.debug && /Ecommerce found|has passed validation for|Start processing.*ecommerce event/.test(argArr.join(' '))) {
+                else if (gaEcomTransfer.settings.debug && /(Ecommerce found)|(has passed validation for)|(Start processing.*ecommerce event)/.test(argArr.join(' '))) {
                     console.log('[gaEcomTransfer]%c[' + this.debugName + ']', 'background-color: PaleGreen;', argArr.join(' '));
                 }
                 else if (gaEcomTransfer.settings.debug) {
