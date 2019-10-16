@@ -184,26 +184,26 @@
                 * @param {(string|integer|float)} ecommEventRevenue - The total purchase amount from the GA Ecommerce event.
                 */
                 sendEvent: function(ecommEventName, ecommEventProducts, ecommEventCurrencyCode, ecommEventRevenue) {
-                    gaEcomTransfer.debug.log_start.call(this, 'vk.sendEvent');
+                    gaEcomTransfer.debug.log_start.call(gaEcomTransfer.main.vk, 'vk.sendEvent');
                     if (window.VK) {
-                        gaEcomTransfer.debug.log.call(this, 'Sending event data to VK pixel...');
+                        gaEcomTransfer.debug.log.call(gaEcomTransfer.main.vk, 'Sending event data to VK pixel...');
                         var pixelEvent = new gaEcomTransfer.main.event.eventConstructor('vk', ecommEventName, ecommEventProducts, ecommEventCurrencyCode, ecommEventRevenue);
-                        var priсeListID = this.getPriceListId(gaEcomTransfer.main.url.host);
+                        var priсeListID = gaEcomTransfer.main.vk.getPriceListId(gaEcomTransfer.main.url.host);
                         var name = pixelEvent.name;
                         var params = pixelEvent.params;
                         for (var i = 0; i < gaEcomTransfer.settings.vk.pixelIDs.length; i++) {
-                            this.pixelInit(gaEcomTransfer.settings.vk.pixelIDs[i]);
+                            gaEcomTransfer.main.vk.pixelInit(gaEcomTransfer.settings.vk.pixelIDs[i]);
                             VK.Retargeting.ProductEvent(priсeListID, name, params);
-                            gaEcomTransfer.debug.log.call(this, 'Event data:', priсeListID, name, params, 'was sent to', gaEcomTransfer.settings.vk.pixelIDs[i]);
+                            gaEcomTransfer.debug.log.call(gaEcomTransfer.main.vk, 'Event data:', priсeListID, name, params, 'was sent to', gaEcomTransfer.settings.vk.pixelIDs[i]);
                         }
                     } 
-                    else if (document.getElementById('vk_api_transport') && this.openapiLoadCounter < 100) {
-                            gaEcomTransfer.debug.log.call(this, 'VK not found, waiting for openapi.js load... Attempts left:', 99 - this.openapiLoadCounter);
-                            setTimeout(this.sendEvent, 100, ecommEventName, ecommEventProducts, ecommEventCurrencyCode, ecommEventRevenue);
-                            this.openapiLoadCounter++;
+                    else if (document.getElementById('vk_api_transport') && gaEcomTransfer.main.vk.openapiLoadCounter < 100) {
+                            gaEcomTransfer.debug.log.call(gaEcomTransfer.main.vk, 'VK not found, waiting for openapi.js load... Attempts left:', 99 - gaEcomTransfer.main.vk.openapiLoadCounter);
+                            setTimeout(gaEcomTransfer.main.vk.sendEvent, 100, ecommEventName, ecommEventProducts, ecommEventCurrencyCode, ecommEventRevenue);
+                            gaEcomTransfer.main.vk.openapiLoadCounter++;
                     } 
                     else {
-                        gaEcomTransfer.debug.log.call(this, 'VK not found, event data cannot be sent to VK pixel');
+                        gaEcomTransfer.debug.log.call(gaEcomTransfer.main.vk, 'VK not found, event data cannot be sent to VK pixel');
                         return;
                     }
                 }
