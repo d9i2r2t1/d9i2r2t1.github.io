@@ -172,7 +172,12 @@
                         };
                     } 
                     else {
-                        gaEcomTransfer.debug.log.call(this, 'VK was found, pageview should already be sent');
+                        gaEcomTransfer.debug.log.call(this, 'Sending pageview to VK pixel...');
+                        for (var i = 0; i < gaEcomTransfer.settings.vk.pixelIDs.length; i++) {
+                            gaEcomTransfer.main.vk.pixelInit(gaEcomTransfer.settings.vk.pixelIDs[i]);
+                            VK.Retargeting.Hit();
+                            gaEcomTransfer.debug.log.call(gaEcomTransfer.main.vk, 'Pageview was sent to', gaEcomTransfer.settings.vk.pixelIDs[i]);
+                        }
                     }
                 },
 
