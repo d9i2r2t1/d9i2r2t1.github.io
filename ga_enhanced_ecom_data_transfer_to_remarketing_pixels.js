@@ -191,10 +191,16 @@
                         var priсeListID = gaEcomTransfer.main.vk.getPriceListId(gaEcomTransfer.main.url.host);
                         var name = pixelEvent.name;
                         var params = pixelEvent.params;
-                        for (var i = 0; i < gaEcomTransfer.settings.vk.pixelIDs.length; i++) {
-                            gaEcomTransfer.main.vk.pixelInit(gaEcomTransfer.settings.vk.pixelIDs[i]);
+                        if (!gaEcomTransfer.settings.vk.pixelIDs) {
                             VK.Retargeting.ProductEvent(priсeListID, name, params);
-                            gaEcomTransfer.debug.log.call(gaEcomTransfer.main.vk, 'Event data:', priсeListID, name, params, 'was sent to', gaEcomTransfer.settings.vk.pixelIDs[i]);
+                            gaEcomTransfer.debug.log.call(gaEcomTransfer.main.vk, 'Event data:', priсeListID, name, params, 'was sent to VK pixel');
+                        }
+                        else {
+                            for (var i = 0; i < gaEcomTransfer.settings.vk.pixelIDs.length; i++) {
+                                gaEcomTransfer.main.vk.pixelInit(gaEcomTransfer.settings.vk.pixelIDs[i]);
+                                VK.Retargeting.ProductEvent(priсeListID, name, params);
+                                gaEcomTransfer.debug.log.call(gaEcomTransfer.main.vk, 'Event data:', priсeListID, name, params, 'was sent to', gaEcomTransfer.settings.vk.pixelIDs[i]);
+                            }
                         }
                     } 
                     else if (document.getElementById('vk_api_transport') && gaEcomTransfer.main.vk.openapiLoadCounter < 100) {
