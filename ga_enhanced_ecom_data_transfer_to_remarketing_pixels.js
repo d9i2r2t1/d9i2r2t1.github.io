@@ -341,7 +341,7 @@
                             gaEcomTransfer.debug.log.call(this, 'Page type found by GTM variable: main');
                             return 'main';
                         }
-                        else if (gaEcomTransfer.settings.pageTypeGTMnames.catalog.indexOf(gaEcomTransfer.settings.pageTypeGTM) !== -1) {
+                        else if (gaEcomTransfer.settings.pageTypeGTMnames.catalog && gaEcomTransfer.settings.pageTypeGTMnames.catalog.indexOf(gaEcomTransfer.settings.pageTypeGTM) !== -1) {
                             gaEcomTransfer.debug.log.call(this, 'Page type found by GTM variable: catalog');
                             return 'catalog';
                         }
@@ -355,15 +355,15 @@
                         }
                     }
                     else {
-                        if (gaEcomTransfer.main.url.href.match(gaEcomTransfer.settings.mainPage) !== null) {
+                        if (gaEcomTransfer.settings.mainPage && gaEcomTransfer.main.url.href.match(gaEcomTransfer.settings.mainPage) !== null) {
                             gaEcomTransfer.debug.log.call(this, 'Page type: main');
                             return 'main';
                         }
-                        else if (gaEcomTransfer.main.url.href.match(gaEcomTransfer.settings.catalogPage) !== null) {
+                        else if (gaEcomTransfer.settings.catalogPage && gaEcomTransfer.main.url.href.match(gaEcomTransfer.settings.catalogPage) !== null) {
                             gaEcomTransfer.debug.log.call(this, 'Page type: catalog');
                             return 'catalog';
                         }
-                        else if (gaEcomTransfer.main.url.href.match(gaEcomTransfer.settings.siteSearchPage) !== null) {
+                        else if (gaEcomTransfer.settings.siteSearchPage && gaEcomTransfer.main.url.href.match(gaEcomTransfer.settings.siteSearchPage) !== null) {
                             gaEcomTransfer.debug.log.call(this, 'Page type: search');
                             return 'search';
                         }
