@@ -159,7 +159,20 @@
                 */
                 sendPageView: function() {
                     debug.log_start.call(this, 'vk.sendPageView');
-                    if (!window.VK) {
+                    if (window.VK) {
+                        debug.log.call(this, 'Sending pageview to VK pixel...');
+                        for (var i = 0; i < settings.vk.pixelIDs.length; i++) {
+                            main.vk.pixelInit(settings.vk.pixelIDs[i]);
+                            VK.Retargeting.Hit();
+                            debug.log.call(main.vk, 'Pageview was sent to', settings.vk.pixelIDs[i]);
+                        }
+                    }
+                    else if (document.getElementById('vk_api_transport') && main.vk.openapiLoadCounter < 100) {
+                        debug.log.call(main.vk, 'VK not found, waiting for openapi.js load... Attempts left:', 99 - main.vk.openapiLoadCounter);
+                        setTimeout(main.vk.sendPageView, 100);
+                        main.vk.openapiLoadCounter++;
+                    }
+                    else {
                         debug.log.call(this, 'VK not found, trying to install openapi.js...');
                         this.openapiInit();
                         window.vkAsyncInit = function() {
@@ -171,14 +184,6 @@
                             }
                         };
                     } 
-                    else {
-                        debug.log.call(this, 'Sending pageview to VK pixel...');
-                        for (var i = 0; i < settings.vk.pixelIDs.length; i++) {
-                            main.vk.pixelInit(settings.vk.pixelIDs[i]);
-                            VK.Retargeting.Hit();
-                            debug.log.call(main.vk, 'Pageview was sent to', settings.vk.pixelIDs[i]);
-                        }
-                    }
                 },
     
                 /**
