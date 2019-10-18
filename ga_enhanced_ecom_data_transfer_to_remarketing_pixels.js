@@ -93,11 +93,11 @@
                     debug.log_start.call(this, 'vk.getProductParams');
                     var arr = [];
                     for (var i = 0; i < ecommEventProducts.length; i++) {
-                        var productParams = new Object({
+                        var productParams = {
                             id: String(ecommEventProducts[i].id),
                             group_id: String(ecommEventProducts[i].brand),
                             price: (parseInt(ecommEventProducts[i].price * 100, 10)) / 100
-                        });
+                        };
                         for (var param in productParams) {
                             if (!productParams[param]) {
                                 delete productParams[param];
@@ -124,7 +124,7 @@
                 },
     
                 /**
-                * Openapi.js inject.
+                * VK base code inject.
                 */
                 openapiInit: function() {
                     debug.log_start.call(this, 'vk.openapiInit');
@@ -168,12 +168,12 @@
                         }
                     }
                     else if (document.getElementById('vk_api_transport') && main.vk.openapiLoadCounter < 100) {
-                        debug.log.call(main.vk, 'VK not found, waiting for openapi.js load... Attempts left:', 99 - main.vk.openapiLoadCounter);
+                        debug.log.call(main.vk, 'VK base code not found, waiting for openapi.js load... Attempts left:', 99 - main.vk.openapiLoadCounter);
                         setTimeout(main.vk.sendPageView, 100);
                         main.vk.openapiLoadCounter++;
                     }
                     else {
-                        debug.log.call(main.vk, 'VK not found, trying to install openapi.js...');
+                        debug.log.call(main.vk, 'VK base code not found, trying to install openapi.js...');
                         main.vk.openapiInit();
                         window.vkAsyncInit = function() {
                             debug.log.call(main.vk, 'vkAsyncInit: sending pageview to VK pixel...');
@@ -214,12 +214,12 @@
                         }
                     } 
                     else if (document.getElementById('vk_api_transport') && main.vk.openapiLoadCounter < 100) {
-                            debug.log.call(main.vk, 'VK not found, waiting for openapi.js load... Attempts left:', 99 - main.vk.openapiLoadCounter);
+                            debug.log.call(main.vk, 'VK base code not found, waiting for openapi.js load... Attempts left:', 99 - main.vk.openapiLoadCounter);
                             setTimeout(main.vk.sendEvent, 100, ecommEventName, ecommEventProducts, ecommEventCurrencyCode, ecommEventRevenue);
                             main.vk.openapiLoadCounter++;
                     } 
                     else {
-                        debug.log.call(main.vk, 'VK not found, event data cannot be sent to VK pixel');
+                        debug.log.call(main.vk, 'VK base code not found, event data cannot be sent to VK pixel');
                         return;
                     }
                 }
@@ -232,7 +232,7 @@
                 // Console output decoration when the debug mode is activated
                 debugCSS: 'background-color: Plum;',
             
-                // Matching GA Enhanced Ecommerce events and VK pixel events
+                // Matching GA Enhanced Ecommerce events and Facebook pixel events
                 eventsEcomm: {
                     impressions: ['Search', 'ViewCategory'],
                     detail: 'ViewContent',
@@ -242,7 +242,11 @@
                     purchase: 'Purchase'
                 },
 
-                // метод проверки события на необходимость отправки данных в пиксель Facebook
+                /**
+                * Additional event validation for sending data to Facebook pixel.
+                * @param {string} ecommEventName - GA Ecommerce event name.
+                * @returns {bool} Result of checking.
+                */
                 eventCheck: function(ecommEventName) {
                     debug.log_start.call(this, 'facebook.eventCheck');
                     if (ecommEventName === 'impressions' && !/search|catalog/.test(main.event.getPageType())) {
@@ -252,6 +256,219 @@
                         return true;
                     }
                 },
+
+                /**
+                * Getting the event name for a pixel.
+                * @param {string} ecommEventName - GA Ecommerce event name.
+                * @returns {string} Facebook pixel event name.
+                */
+                getEventName: function(ecommEventName) {
+                    debug.log_start.call(this, 'facebook.getEventName');
+                    if (ecommEventName !== 'impressions') {
+                        return this.eventsEcomm[ecommEventName];
+                    }
+                    else if (main.event.getPageType() === 'search') {
+                        return this.eventsEcomm.impressions[0];
+                    }
+                    else if (main.event.getPageType() === 'catalog') {
+                        return this.eventsEcomm.impressions[1];
+                    }
+                },
+
+                /**
+                * Getting event parameters for a pixel.
+                * @param {Object[]} ecommEventProducts - An array of products and their parameters from the GA Ecommerce event.
+                * @param {string} ecommEventCurrencyCode - Currency code from the GA Ecommerce event.
+                * @param {(string|integer|float)} ecommEventRevenue - The total purchase amount from the GA Ecommerce event.
+                * @param {string} ecommEventName - GA Ecommerce event name.
+                * @returns {Object} Processed event parameters.
+                */
+                getEventParams: function(ecommEventProducts, ecommEventCurrencyCode, ecommEventRevenue, ecommEventName) {
+                    debug.log_start.call(this, 'facebook.getEventParams');
+                    var eventParams = new this.eventParamConstructor(ecommEventProducts, ecommEventCurrencyCode, ecommEventRevenue);
+                    if (ecommEventName === 'impressions' && main.event.getPageType() === 'search') {
+                        return {
+                            contents: eventParams.contents,
+                            content_category: eventParams.content_category,
+                            search_string: eventParams.search_string
+                        };
+                    }
+                    else if (ecommEventName === 'impressions' && main.event.getPageType() !== 'search') {
+                        return {
+                            contents: eventParams.contents,
+                            content_name: eventParams.content_name,
+                            content_type: eventParams.content_type
+                        };
+                    }
+                    else if (ecommEventName === 'checkout') {
+                        return {
+                            contents: eventParams.contents,
+                            content_category: eventParams.content_category,
+                            num_items: eventParams.num_items,
+                            currency: eventParams.currency,
+                            value: eventParams.value
+                        };
+                    }
+                    else if (ecommEventName === 'purchase') {
+                        return {
+                            contents: eventParams.contents,
+                            content_name: eventParams.content_name,
+                            content_type: eventParams.content_type,
+                            currency: eventParams.currency,
+                            value: eventParams.value,
+                            num_items: eventParams.num_items
+                        };
+                    }
+                    else {
+                        return {
+                            contents: eventParams.contents,
+                            content_name: eventParams.content_name,
+                            content_type: eventParams.content_type,
+                            currency: eventParams.currency,
+                            value: eventParams.value
+                        };
+                    }
+                },
+
+                /**
+                * Event parameters object constructor.
+                * @constructs eventParam
+                * @param {Object[]} ecommEventProducts - An array of products and their parameters from the GA Ecommerce event.
+                * @param {string} ecommEventCurrencyCode - Currency code from the GA Ecommerce event.
+                * @param {(string|integer|float)} ecommEventRevenue - The total purchase amount from the GA Ecommerce event.
+                */
+                eventParamConstructor: function(ecommEventProducts, ecommEventCurrencyCode, ecommEventRevenue) {
+                    debug.log_start.call(main.facebook, 'facebook.eventParamConstructor');
+                    this.contents = main.facebook.getСontents(ecommEventProducts);
+                    this.content_name = main.products.getContentNameString(ecommEventProducts);
+                    this.content_type = main.facebook.getContentType();
+                    this.currency = main.products.getCurrencyCode('facebook', ecommEventCurrencyCode);
+                    this.value = main.products.getTotalPrice(ecommEventProducts, ecommEventRevenue);
+                    this.content_category = main.products.getCategoryString(ecommEventProducts);
+                    this.search_string = main.event.getSiteSearchPhrase();
+                    this.num_items = main.products.getNumItems(ecommEventProducts);
+                },
+
+                /**
+                * Getting the parameters of the contents object for a pixel.
+                * @param {Object[]} ecommEventProducts - An array of products and their parameters from the GA Ecommerce event.
+                * @returns {Object[]} Product parameters.
+                */
+                getСontents: function(ecommEventProducts) {
+                    debug.log_start.call(this, 'facebook.getСontents');
+                    var arr = [];
+                    for (var i = 0; i < ecommEventProducts.length; i++) {
+                        var productParams = {
+                            id: String(ecommEventProducts[i].id),
+                            quantity: parseInt(ecommEventProducts[i].quantity, 10),
+                            item_price: (parseInt(ecommEventProducts[i].price * 100, 10)) / 100
+                        };
+                        for (var param in productParams) {
+                            if (param === 'quantity' && isNaN(productParams[param])) {
+                                productParams[param] = 1;
+                            }
+                            else if (!productParams[param]) {
+                                delete productParams[param];
+                            }
+                        }
+                        arr.push(productParams);
+                    }
+                    return arr;
+                },
+
+                /**
+                * Getting content_type parameter.
+                * @returns {string} content_type parameter.
+                */
+                getContentType: function() {
+                    debug.log_start.call(this, 'facebook.getContentType');
+                    return 'product';
+                },
+
+                /**
+                * Facebook pixel base code inject.
+                */
+                facebookInit: function(f, b, e, v, n, t, s) {
+                    debug.log_start.call(this, 'facebook.facebookInit');
+                    if (f.fbq) {
+                        return;
+                    }
+                    n = f.fbq = function() {
+                        n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+                    };
+                    if (!f._fbq) {
+                        f._fbq = n;
+                    }
+                    n.push = n;
+                    n.loaded = !0;
+                    n.version = '2.0';
+                    n.queue = [];
+                    t = b.createElement(e);
+                    t.async = !0;
+                    t.src = v;
+                    s = b.getElementsByTagName(e)[0];
+                    s.parentNode.insertBefore(t, s);
+                    debug.log.call(this, 'Facebook base code was installed');
+                },
+
+                /**
+                * Facebook pixel initialization.
+                * @param {string} pixelID - Facebook pixel ID.
+                */
+                pixelInit: function(pixelID) {
+                    debug.log_start.call(this, 'facebook.pixelInit');
+                    fbq('init', pixelID);
+                    debug.log.call(this, 'Pixel was initialized:', pixelID);
+                },
+
+                /**
+                * Sending pageview to Facebook pixel.
+                */
+                sendPageView: function() {
+                    debug.log_start.call(this, 'facebook.sendPageView');
+                    if (!window.fbq) {
+                        debug.log.call(this, 'Facebook base code not found, trying to install...');
+                        this.facebookInit(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+                        debug.log.call(this, 'Sending pageview to Facebook pixel...');
+                        for (var i = 0; i < settings.facebook.pixelIDs.length; i++) {
+                            this.pixelInit(settings.facebook.pixelIDs[i]);
+                        }
+                        fbq('track', 'PageView');
+                        debug.log.call(this, 'Pageview was sent to', settings.facebook.pixelIDs);
+                    } 
+                    else {
+                        debug.log.call(this, 'Sending pageview to Facebook pixel...');
+                        fbq('track', 'PageView');
+                        debug.log.call(this, 'Pageview was sent');
+                    }
+                },
+
+                /**
+                * Sending event data to Facebook pixel.
+                * @param {string} ecommEventName - GA Ecommerce event name.
+                * @param {Object[]} ecommEventProducts - An array of products and their parameters from the GA Ecommerce event.
+                * @param {string} ecommEventCurrencyCode - Currency code from the GA Ecommerce event.
+                * @param {(string|integer|float)} ecommEventRevenue - The total purchase amount from the GA Ecommerce event.
+                */
+                sendEvent: function(ecommEventName, ecommEventProducts, ecommEventCurrencyCode, ecommEventRevenue) {
+                    debug.log_start.call(this, 'facebook.sendEvent');
+                    if (window.fbq) {
+                        debug.log.call(this, 'Sending event data to Facebook pixel...');
+                        var pixelEvent = new main.event.eventConstructor('facebook', ecommEventName, ecommEventProducts, ecommEventCurrencyCode, ecommEventRevenue);
+                        var name = pixelEvent.name;
+                        var params = pixelEvent.params;
+                        if (name === 'RemoveFromCart' || name === 'ViewCategory') {
+                            fbq('trackCustom', name, params);
+                        }
+                        else {
+                            fbq('track', name, params);
+                        }
+                        debug.log.call(this, 'Event data:', name, params, 'was sent to Facebook pixel');
+                    } else{
+                        debug.log.call(this, 'Facebook base code not found, event data cannot be sent to Facebook pixel');
+                        return;
+                    }
+                }
             },
 
             products: {
@@ -316,6 +533,58 @@
                         }
                         return sumPrice;
                     }
+                },
+
+                /**
+                * Getting a list of product names.
+                * @param {Object[]} ecommEventProducts - An array of products and their parameters from the GA Ecommerce event.
+                * @returns {string} List of product names.
+                */
+                getContentNameString: function(ecommEventProducts) {
+                    debug.log_start.call(this, 'products.getContentNameString');
+                    var contentName = '';
+                    var check = [];
+                    for (var i = 0; i < ecommEventProducts.length; i++) {
+                        if (check.indexOf(ecommEventProducts[i].name) === -1) {
+                            check.push(ecommEventProducts[i].name);
+                            contentName += ',' + ecommEventProducts[i].name;
+                        }
+                    }
+                    contentName = contentName.slice(1);
+                    return contentName;
+                },
+
+                /**
+                * Getting the total amount of the products.
+                * @param {Object[]} ecommEventProducts - An array of products and their parameters from the GA Ecommerce event.
+                * @returns {integer} Total amount of the products.
+                */
+                getNumItems: function(ecommEventProducts) {
+                    debug.log_start.call(this, 'products.getNumItems');
+                    var count = 0;
+                    for (var i = 0; i < ecommEventProducts.length; i++) {
+                        if (ecommEventProducts[i].hasOwnProperty('quantity')) {
+                            count += parseInt(ecommEventProducts[i].quantity, 10);
+                        }
+                        else {
+                            count += 1;
+                        }
+                    }
+                    return count;
+                },
+
+                /**
+                * Getting an array of product ids.
+                * @param {Object[]} ecommEventProducts - An array of products and their parameters from the GA Ecommerce event.
+                * @returns {string[]} Array of product ids.
+                */
+                getProductsId: function(ecommEventProducts) {
+                    debug.log_start.call(this, 'products.getProductsId');
+                    var idArr = [];
+                    for (var i = 0; i < ecommEventProducts.length; i++) {
+                        idArr.push(ecommEventProducts[i].id);
+                    }
+                    return idArr;
                 }
             },
     
@@ -624,4 +893,4 @@
             console.log('[gaEcomTransfer] UNKNOWN ERROR');
         }
     };     
-})();    
+})();
