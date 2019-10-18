@@ -555,7 +555,12 @@
                 */
                 getPriceListId: function(hostname) {
                     debug.log_start.call(this, 'myTarget.getPriceListId');
-                    return settings.myTarget.priceListIds[hostname];
+                    if (settings.myTarget.fewPriceLists) {
+                        return settings.myTarget.priceListIds[hostname];
+                    }
+                    else {
+                        return settings.myTarget.priceListId;
+                    }
                 },
     
                 /**
