@@ -471,6 +471,173 @@
                 }
             },
 
+            myTarget: {
+                // Name of the object to display in the console when the debug mode is activated
+                debugName: 'myTarget',
+    
+                // Console output decoration when the debug mode is activated
+                debugCSS: 'background-color: PeachPuff;',
+    
+                // Matching GA Enhanced Ecommerce events and myTarget counter events
+                eventsEcomm: {
+                    impressions: ['home', 'category', 'searchresults', 'other'],
+                    detail: 'product',
+                    add: 'cart',
+                    purchase: 'purchase'
+                },
+    
+                /**
+                * Getting the event name for a counter.
+                * @param {string} ecommEventName - GA Ecommerce event name.
+                * @returns {string} myTarget counter event name.
+                */
+                getEventName: function(ecommEventName) {
+                    debug.log_start.call(this, 'myTarget.getEventName');
+                    if (ecommEventName !== 'impressions') {
+                        return this.eventsEcomm[ecommEventName];
+                    }
+                    else if (main.event.getPageType() === 'main') {
+                        return this.eventsEcomm.impressions[0];
+                    }
+                    else if (main.event.getPageType() === 'catalog') {
+                        return this.eventsEcomm.impressions[1];
+                    }
+                    else if (main.event.getPageType() === 'search') {
+                        return this.eventsEcomm.impressions[2];
+                    }
+                    else {
+                        return this.eventsEcomm.impressions[3];
+                    }
+                },
+    
+                /**
+                * Getting event parameters for a counter.
+                * @param {Object[]} ecommEventProducts - An array of products and their parameters from the GA Ecommerce event.
+                * @param {string} ecommEventCurrencyCode - Currency code from the GA Ecommerce event.
+                * @param {(string|integer|float)} ecommEventRevenue - The total purchase amount from the GA Ecommerce event.
+                * @param {string} ecommEventName - GA Ecommerce event name.
+                * @returns {Object} Processed event parameters.
+                */
+                getEventParams: function(ecommEventProducts, ecommEventCurrencyCode, ecommEventRevenue, ecommEventName) {
+                    debug.log_start.call(this, 'myTarget.getEventParams');
+                    var eventParams = new this.eventParamConstructor(ecommEventProducts, ecommEventRevenue, ecommEventName);
+                    if (ecommEventName === 'impressions') {
+                        eventParams.totalvalue = undefined;
+                    }
+                    for (var param in eventParams) {
+                        if (!eventParams[param]) {
+                            delete eventParams[param];
+                        }
+                    }
+                    return eventParams;
+                },
+    
+                /**
+                * Event parameters object constructor.
+                * @constructs eventParam
+                * @param {Object[]} ecommEventProducts - An array of products and their parameters from the GA Ecommerce event.
+                * @param {string} ecommEventCurrencyCode - Currency code from the GA Ecommerce event.
+                * @param {(string|integer|float)} ecommEventRevenue - The total purchase amount from the GA Ecommerce event.
+                */
+                eventParamConstructor: function(ecommEventProducts, ecommEventRevenue, ecommEventName) {
+                    debug.log_start.call(main.myTarget, 'myTarget.eventParamConstructor');
+                    this.type = 'itemView';
+                    this.productid = main.products.getProductsId(ecommEventProducts);
+                    this.pagetype = main.myTarget.getEventName(ecommEventName);
+                    this.list = main.myTarget.getPriceListId(main.url.host);
+                    this.totalvalue = main.products.getTotalPrice(ecommEventProducts, ecommEventRevenue);
+                },
+    
+                /**
+                * Product feed selection.
+                * @param {string} hostname - Page hostname.
+                * @returns {string} Product feed.
+                */
+                getPriceListId: function(hostname) {
+                    debug.log_start.call(this, 'myTarget.getPriceListId');
+                    return settings.myTarget.priceListIds[hostname];
+                },
+    
+                /**
+                * myTarget counter base code inject.
+                */
+                myTargetInit: function(d, w, id) {
+                    debug.log_start.call(this, 'myTarget.myTargetInit');
+                    if (d.getElementById(id)) {
+                        return;
+                    }
+                    var ts = d.createElement('script');
+                    ts.type = 'text/javascript';
+                    ts.async = true;
+                    ts.id = id;
+                    ts.src = (d.location.protocol == 'https:' ? 'https:' : 'http:') + '//top-fwz1.mail.ru/js/code.js';
+                    var f = function() {
+                        var s = d.getElementsByTagName('script')[0];
+                        s.parentNode.insertBefore(ts, s);
+                    };
+                    if (w.opera == '[object Opera]') {
+                        d.addEventListener('DOMContentLoaded', f, false);
+                    }
+                    else {
+                        f();
+                    }
+                    debug.log.call(this, 'myTarget counter base code was installed');
+                },
+    
+                /**
+                * Sending pageview to myTarget counter.
+                */
+                sendPageView: function() {
+                    debug.log_start.call(this, 'myTarget.sendPageView');
+                    if (!window._tmr) {
+                        var _tmr = (window._tmr = []);
+                        for (var i = 0; i < settings.myTarget.pixelIDs.length; i++) {
+                            _tmr.push({
+                                id: settings.myTarget.pixelIDs[i],
+                                type: 'pageView',
+                                start: (new Date()).getTime()
+                            });
+                            debug.log.call(this, 'Pageview was sent to', settings.myTarget.pixelIDs[i]);
+                        }
+                        this.myTargetInit(document, window, 'topmailru-code');
+                    } 
+                    else {
+                        for (var y = 0; y < settings.myTarget.pixelIDs.length; y++) {
+                            window._tmr.push({
+                                id: settings.myTarget.pixelIDs[y],
+                                type: 'pageView',
+                                start: (new Date()).getTime()
+                            });
+                            debug.log.call(this, 'Pageview was sent to', settings.myTarget.pixelIDs[y]);
+                        }
+                    }
+                },
+    
+                /**
+                * Sending event data to myTarget counter.
+                * @param {string} ecommEventName - GA Ecommerce event name.
+                * @param {Object[]} ecommEventProducts - An array of products and their parameters from the GA Ecommerce event.
+                * @param {string} ecommEventCurrencyCode - Currency code from the GA Ecommerce event.
+                * @param {(string|integer|float)} ecommEventRevenue - The total purchase amount from the GA Ecommerce event.
+                */
+                sendEvent: function(ecommEventName, ecommEventProducts, ecommEventCurrencyCode, ecommEventRevenue) {
+                    debug.log_start.call(this, 'myTarget.sendEvent');
+                    var pixelEvent = new main.event.eventConstructor('myTarget', ecommEventName, ecommEventProducts, ecommEventCurrencyCode, ecommEventRevenue);
+                    var _tmr = window._tmr || (window._tmr = []);
+                    for (var i = 0; i < settings.myTarget.pixelIDs.length; i++) {
+                        _tmr.push({
+                            id: settings.myTarget.pixelIDs[i],
+                            type: pixelEvent.params.type,
+                            productid: pixelEvent.params.productid,
+                            pagetype: pixelEvent.params.pagetype,
+                            list: pixelEvent.params.list,
+                            totalvalue: pixelEvent.params.totalvalue
+                        });
+                        debug.log.call(this, 'Event data:', pixelEvent.params, 'was sent to', settings.myTarget.pixelIDs[i]);
+                    }
+                }
+            },
+
             products: {
                 // Name of the object to display in the console when the debug mode is activated
                 debugName: 'products',
