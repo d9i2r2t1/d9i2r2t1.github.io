@@ -158,9 +158,9 @@
                 * Sending pageview to VK pixel.
                 */
                 sendPageView: function() {
-                    debug.log_start.call(this, 'vk.sendPageView');
+                    debug.log_start.call(main.vk, 'vk.sendPageView');
                     if (window.VK) {
-                        debug.log.call(this, 'Sending pageview to VK pixel...');
+                        debug.log.call(main.vk, 'Sending pageview to VK pixel...');
                         for (var i = 0; i < settings.vk.pixelIDs.length; i++) {
                             main.vk.pixelInit(settings.vk.pixelIDs[i]);
                             VK.Retargeting.Hit();
@@ -173,8 +173,8 @@
                         main.vk.openapiLoadCounter++;
                     }
                     else {
-                        debug.log.call(this, 'VK not found, trying to install openapi.js...');
-                        this.openapiInit();
+                        debug.log.call(main.vk, 'VK not found, trying to install openapi.js...');
+                        main.vk.openapiInit();
                         window.vkAsyncInit = function() {
                             debug.log.call(main.vk, 'vkAsyncInit: sending pageview to VK pixel...');
                             for (var i = 0; i < settings.vk.pixelIDs.length; i++) {
