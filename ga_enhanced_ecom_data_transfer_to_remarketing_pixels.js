@@ -430,18 +430,13 @@
                     if (!window.fbq) {
                         debug.log.call(this, 'Facebook base code not found, trying to install...');
                         this.facebookInit(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
-                        debug.log.call(this, 'Sending pageview to Facebook pixel...');
-                        for (var i = 0; i < settings.facebook.pixelIDs.length; i++) {
-                            this.pixelInit(settings.facebook.pixelIDs[i]);
-                        }
-                        fbq('track', 'PageView');
-                        debug.log.call(this, 'Pageview was sent to', settings.facebook.pixelIDs);
-                    } 
-                    else {
-                        debug.log.call(this, 'Sending pageview to Facebook pixel...');
-                        fbq('track', 'PageView');
-                        debug.log.call(this, 'Pageview was sent');
                     }
+                    debug.log.call(this, 'Sending pageview to Facebook pixel...');
+                    for (var i = 0; i < settings.facebook.pixelIDs.length; i++) {
+                        this.pixelInit(settings.facebook.pixelIDs[i]);
+                    }
+                    fbq('track', 'PageView');
+                    debug.log.call(this, 'Pageview was sent to', settings.facebook.pixelIDs);
                 },
 
                 /**
@@ -598,27 +593,17 @@
                     debug.log_start.call(this, 'myTarget.sendPageView');
                     if (!window._tmr) {
                         debug.log.call(this, 'myTarget counter base code not found, trying to install...');
-                        var _tmr = (window._tmr = []);
-                        for (var i = 0; i < settings.myTarget.pixelIDs.length; i++) {
-                            _tmr.push({
-                                id: settings.myTarget.pixelIDs[i],
-                                type: 'pageView',
-                                start: (new Date()).getTime()
-                            });
-                            debug.log.call(this, 'Pageview was sent to', settings.myTarget.pixelIDs[i]);
-                        }
                         this.myTargetInit(document, window, 'topmailru-code');
-                    } 
-                    else {
-                        debug.log.call(this, 'Sending pageview to myTarget counter...');
-                        for (var y = 0; y < settings.myTarget.pixelIDs.length; y++) {
-                            window._tmr.push({
-                                id: settings.myTarget.pixelIDs[y],
-                                type: 'pageView',
-                                start: (new Date()).getTime()
-                            });
-                            debug.log.call(this, 'Pageview was sent to', settings.myTarget.pixelIDs[y]);
-                        }
+                    }
+                    debug.log.call(this, 'Sending pageview to myTarget counter...');
+                    var _tmr = (window._tmr = []);
+                    for (var i = 0; i < settings.myTarget.pixelIDs.length; i++) {
+                        _tmr.push({
+                            id: settings.myTarget.pixelIDs[i],
+                            type: 'pageView',
+                            start: (new Date()).getTime()
+                        });
+                        debug.log.call(this, 'Pageview was sent to', settings.myTarget.pixelIDs[i]);
                     }
                 },
     
