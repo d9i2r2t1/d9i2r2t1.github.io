@@ -465,7 +465,8 @@
                             fbq('track', name, params);
                         }
                         debug.log.call(this, 'Event data:', name, params, 'was sent to Facebook pixel');
-                    } else{
+                    }
+                    else {
                         debug.log.call(this, 'Facebook base code not found, event data cannot be sent to Facebook pixel');
                         return;
                     }
@@ -596,6 +597,7 @@
                 sendPageView: function() {
                     debug.log_start.call(this, 'myTarget.sendPageView');
                     if (!window._tmr) {
+                        debug.log.call(this, 'myTarget counter base code not found, trying to install...');
                         var _tmr = (window._tmr = []);
                         for (var i = 0; i < settings.myTarget.pixelIDs.length; i++) {
                             _tmr.push({
@@ -608,6 +610,7 @@
                         this.myTargetInit(document, window, 'topmailru-code');
                     } 
                     else {
+                        debug.log.call(this, 'Sending pageview to myTarget counter...');
                         for (var y = 0; y < settings.myTarget.pixelIDs.length; y++) {
                             window._tmr.push({
                                 id: settings.myTarget.pixelIDs[y],
@@ -628,18 +631,24 @@
                 */
                 sendEvent: function(ecommEventName, ecommEventProducts, ecommEventCurrencyCode, ecommEventRevenue) {
                     debug.log_start.call(this, 'myTarget.sendEvent');
-                    var pixelEvent = new main.event.eventConstructor('myTarget', ecommEventName, ecommEventProducts, ecommEventCurrencyCode, ecommEventRevenue);
-                    var _tmr = window._tmr || (window._tmr = []);
-                    for (var i = 0; i < settings.myTarget.pixelIDs.length; i++) {
-                        _tmr.push({
-                            id: settings.myTarget.pixelIDs[i],
-                            type: pixelEvent.params.type,
-                            productid: pixelEvent.params.productid,
-                            pagetype: pixelEvent.params.pagetype,
-                            list: pixelEvent.params.list,
-                            totalvalue: pixelEvent.params.totalvalue
-                        });
-                        debug.log.call(this, 'Event data:', pixelEvent.params, 'was sent to', settings.myTarget.pixelIDs[i]);
+                    if (window._tmr) {
+                        debug.log.call(this, 'Sending event data to myTarget counter...');
+                        var pixelEvent = new main.event.eventConstructor('myTarget', ecommEventName, ecommEventProducts, ecommEventCurrencyCode, ecommEventRevenue);
+                        for (var i = 0; i < settings.myTarget.pixelIDs.length; i++) {
+                            _tmr.push({
+                                id: settings.myTarget.pixelIDs[i],
+                                type: pixelEvent.params.type,
+                                productid: pixelEvent.params.productid,
+                                pagetype: pixelEvent.params.pagetype,
+                                list: pixelEvent.params.list,
+                                totalvalue: pixelEvent.params.totalvalue
+                            });
+                            debug.log.call(this, 'Event data:', pixelEvent.params, 'was sent to', settings.myTarget.pixelIDs[i]);
+                        }
+                    }
+                    else {
+                        debug.log.call(this, 'myTarget counter base code not found, event data cannot be sent to myTarget counter');
+                        return;
                     }
                 }
             },
