@@ -1032,7 +1032,7 @@
                 if (settings.debug && /was sent to/.test(argArr.join(' '))) {
                     console.log('[gaEcomTransfer]%c[' + this.debugName + ' *SEND*]', this.debugCSS + 'font-weight: bold;', argArr.join(' '));
                 }
-                else if (settings.debug && /failed validation for/.test(argArr.join(' '))) {
+                else if (settings.debug && /(failed validation for)|(base code not found)/.test(argArr.join(' '))) {
                     console.log('[gaEcomTransfer]%c[' + this.debugName + ']', 'background-color: LightCoral;', argArr.join(' '));
                 }
                 else if (settings.debug && /(Ecommerce found)|(has passed validation for)|(Start processing.*ecommerce event)/.test(argArr.join(' '))) {
