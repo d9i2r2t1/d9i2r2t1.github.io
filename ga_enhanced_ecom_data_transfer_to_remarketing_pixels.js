@@ -427,10 +427,8 @@
                 */
                 sendPageView: function() {
                     debug.log_start.call(this, 'facebook.sendPageView');
-                    if (!window.fbq) {
-                        debug.log.call(this, 'Facebook base code not found, trying to install...');
-                        this.facebookInit(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
-                    }
+                    debug.log.call(this, 'Checking whether it is necessary to install Facebook base code...');
+                    this.facebookInit(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
                     debug.log.call(this, 'Sending pageview to Facebook pixel...');
                     for (var i = 0; i < settings.facebook.pixelIDs.length; i++) {
                         this.pixelInit(settings.facebook.pixelIDs[i]);
@@ -591,10 +589,8 @@
                 */
                 sendPageView: function() {
                     debug.log_start.call(this, 'myTarget.sendPageView');
-                    if (!window._tmr) {
-                        debug.log.call(this, 'myTarget counter base code not found, trying to install...');
-                        this.myTargetInit(document, window, 'topmailru-code');
-                    }
+                    debug.log.call(this, 'Checking whether it is necessary to install myTarget counter base code...');
+                    this.myTargetInit(document, window, 'topmailru-code');
                     debug.log.call(this, 'Sending pageview to myTarget counter...');
                     var _tmr = (window._tmr = []);
                     for (var i = 0; i < settings.myTarget.pixelIDs.length; i++) {
