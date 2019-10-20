@@ -1,3 +1,13 @@
+// Google Enhanced Ecommerce data transfer to remarketing pixels package
+// v.1.0
+//
+// Available pixels:
+// VK (https://vk.com)
+// Facebook (https://facebook.com)
+// myTarget (https://target.my.com)
+//
+// Developer: https://github.com/oleg-dirtrider
+
 (function() {
     if (!window.gaEcomTransfer) window.gaEcomTransfer = function(settings) {
         var main = {
@@ -911,44 +921,42 @@
                         main[pixel].sendPageView();
                     }
                 }
-                if (window.dataLayer) {
-                    for (var i = 0;  i < dataLayer.length; i++) {
-                        if (!dataLayer[i].hasOwnProperty('ecommerce')) {
-                            debug.log.call(this, 'There is no ecommerce in dataLayer event');
-                            continue;
+                for (var i = 0;  i < dataLayer.length; i++) {
+                    if (!dataLayer[i].hasOwnProperty('ecommerce')) {
+                        debug.log.call(this, 'There is no ecommerce in dataLayer event');
+                        continue;
+                    }
+                    debug.log.call(this, 'Ecommerce found, start processing...');
+                    var ecommEventCurrencyCode = dataLayer[i].ecommerce.currencyCode;
+                    for (var property in dataLayer[i].ecommerce) {
+                        debug.log.call(this, 'Start processing ecommerce event', property);
+                        var products = undefined;
+                        var revenue = undefined;
+                        if (property !== 'impressions') {
+                            products = dataLayer[i].ecommerce[property].products;
+                        } 
+                        else {
+                            products = dataLayer[i].ecommerce[property];
                         }
-                        debug.log.call(this, 'Ecommerce found, start processing...');
-                        var ecommEventCurrencyCode = dataLayer[i].ecommerce.currencyCode;
-                        for (var property in dataLayer[i].ecommerce) {
-                            debug.log.call(this, 'Start processing ecommerce event', property);
-                            var products = undefined;
-                            var revenue = undefined;
-                            if (property !== 'impressions') {
-                                products = dataLayer[i].ecommerce[property].products;
+                        if (property === 'purchase' && dataLayer[i].ecommerce[property].actionField.hasOwnProperty('revenue')) {
+                            revenue = dataLayer[i].ecommerce[property].actionField.revenue;
+                        }
+                        else {
+                            revenue = 'not set';
+                        }
+                        debug.log.call(this, 'Start validate ecommerce event', property);
+                        var eventCheckedObj = main.event.eventCheck(property, dataLayer[i].ecommerce[property]);
+                        for (var checkedPixel in eventCheckedObj) {
+                            if (eventCheckedObj[checkedPixel]) {
+                                debug.log.call(this, 'Ecommerce event', property, 'has passed validation for', checkedPixel, ', start sending data...');
+                                main[checkedPixel].sendEvent(property, products, ecommEventCurrencyCode, revenue);
                             } 
                             else {
-                                products = dataLayer[i].ecommerce[property];
-                            }
-                            if (property === 'purchase' && dataLayer[i].ecommerce[property].actionField.hasOwnProperty('revenue')) {
-                                revenue = dataLayer[i].ecommerce[property].actionField.revenue;
-                            }
-                            else {
-                                revenue = 'not set';
-                            }
-                            debug.log.call(this, 'Start validate ecommerce event', property);
-                            var eventCheckedObj = main.event.eventCheck(property, dataLayer[i].ecommerce[property]);
-                            for (var checkedPixel in eventCheckedObj) {
-                                if (eventCheckedObj[checkedPixel]) {
-                                    debug.log.call(this, 'Ecommerce event', property, 'has passed validation for', checkedPixel, ', start sending data...');
-                                    main[checkedPixel].sendEvent(property, products, ecommEventCurrencyCode, revenue);
-                                } 
-                                else {
-                                    debug.log.call(this, 'Ecommerce event', property, 'failed validation for', checkedPixel);
-                                }
+                                debug.log.call(this, 'Ecommerce event', property, 'failed validation for', checkedPixel);
                             }
                         }
                     }
-                } 
+                }
             },
     
             /**
@@ -1051,18 +1059,16 @@
                 debug.log.call(main, 'Settings not found, exit...');
                 return;
             }
-            else {
+            else if (window.dataLayer) {
                 main.firstStart();
-                if (window.dataLayer) {
-                    main.setDataLayerPushListener(dataLayer.push);
-                }
-                else {
-                    debug.log.call(main, 'DataLayer not found, can’t install dataLayer.push listener');
-                }
+                main.setDataLayerPushListener(dataLayer.push);
+            }
+            else {
+                debug.log.call(main, 'DataLayer not found, exit...');
             }
         } 
         catch(e) {
-            console.log('[gaEcomTransfer] UNKNOWN ERROR');
+            console.log('[gaEcomTransfer] Unknown error');
         }
     };     
 })();
