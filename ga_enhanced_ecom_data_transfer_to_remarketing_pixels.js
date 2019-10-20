@@ -244,27 +244,12 @@
             
                 // Matching GA Enhanced Ecommerce events and Facebook pixel events
                 eventsEcomm: {
-                    impressions: ['Search', 'ViewCategory'],
+                    impressions: ['ViewHome', 'ViewCategory', 'Search', 'ViewOther'],
                     detail: 'ViewContent',
                     add: 'AddToCart',
                     remove: 'RemoveFromCart',
                     checkout: 'InitiateCheckout',
                     purchase: 'Purchase'
-                },
-
-                /**
-                * Additional event validation for sending data to Facebook pixel.
-                * @param {string} ecommEventName - GA Ecommerce event name.
-                * @returns {bool} Result of checking.
-                */
-                eventCheck: function(ecommEventName) {
-                    debug.log_start.call(this, 'facebook.eventCheck');
-                    if (ecommEventName === 'impressions' && !/search|catalog/.test(main.event.getPageType())) {
-                        return false;
-                    }
-                    else {
-                        return true;
-                    }
                 },
 
                 /**
@@ -277,11 +262,17 @@
                     if (ecommEventName !== 'impressions') {
                         return this.eventsEcomm[ecommEventName];
                     }
-                    else if (main.event.getPageType() === 'search') {
+                    else if (main.event.getPageType() === 'main') {
                         return this.eventsEcomm.impressions[0];
                     }
                     else if (main.event.getPageType() === 'catalog') {
                         return this.eventsEcomm.impressions[1];
+                    }
+                    else if (main.event.getPageType() === 'search') {
+                        return this.eventsEcomm.impressions[2];
+                    }
+                    else {
+                        return this.eventsEcomm.impressions[3];
                     }
                 },
 
@@ -467,7 +458,7 @@
                         var pixelEvent = new main.event.eventConstructor('facebook', ecommEventName, ecommEventProducts, ecommEventCurrencyCode, ecommEventRevenue);
                         var name = pixelEvent.name;
                         var params = pixelEvent.params;
-                        if (name === 'RemoveFromCart' || name === 'ViewCategory') {
+                        if (/^RemoveFromCart|ViewHome|ViewCategory|ViewOther$/.test(name)) {
                             fbq('trackCustom', name, params);
                         }
                         else {
