@@ -781,7 +781,8 @@
                             if (!main[pixel].eventsEcomm.hasOwnProperty(ecommEventName)) {
                                 eventCheckedObj[pixel] = false;
                             }
-                            else if (ecommEventName === 'checkout' && parseInt(ecommEventObj.actionField.step, 10) !== 1) {
+                            else if (ecommEventName === 'checkout' && ecommEventObj.hasOwnProperty('actionField') && 
+                                    ecommEventObj.actionField.hasOwnProperty('step') && parseInt(ecommEventObj.actionField.step, 10) !== 1) {
                                 eventCheckedObj[pixel] = false;
                             }
                             else if (main[pixel].hasOwnProperty('eventCheck') && !main[pixel].eventCheck(ecommEventName, ecommEventObj)) {
