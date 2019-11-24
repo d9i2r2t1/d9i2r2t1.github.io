@@ -1,5 +1,5 @@
 // Google Enhanced Ecommerce data transfer to remarketing pixels package
-// v.1.0
+// v.1.01
 //
 // Available pixels:
 // VK (https://vk.com)
